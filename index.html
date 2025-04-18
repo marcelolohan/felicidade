@@ -45,7 +45,7 @@
   <h1>Parabéns! 🎉<br>É hora de ir abrindo espaço no coração, arrumando o colo e preparando a energia, pois em breve teremos um bebê na família ❤️</h1>
 
   <!-- Botão que redireciona para o contador e inicia o áudio -->
-  <button onclick="iniciarAudio()">Ver Contagem Regressiva</button>
+  <button id="playButton">Ver Contagem Regressiva</button>
 
   <!-- Áudio oculto -->
   <audio id="audio" style="display: none;" loop>
@@ -54,8 +54,8 @@
   </audio>
 
   <script>
+    // Função que inicia o áudio e redireciona
     function iniciarAudio() {
-      // Inicia o áudio quando o botão é clicado
       const audio = document.getElementById("audio");
 
       // Garantir que o áudio seja reproduzido após o clique (no mobile)
@@ -66,6 +66,12 @@
         console.error('Erro ao tentar reproduzir áudio:', error);
       });
     }
+
+    // Detecta o clique no botão para iniciar o áudio e redirecionar
+    document.getElementById("playButton").addEventListener("click", function() {
+      // Reproduzir áudio e fazer o redirecionamento
+      iniciarAudio();
+    });
   </script>
 
 </body>
