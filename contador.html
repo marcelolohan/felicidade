@@ -5,66 +5,140 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contagem Regressiva do Bebê</title>
   <style>
+    /* Fonte padrão */
     body {
-      font-family: Arial, sans-serif;
-      background-color: #ffffff;
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f8f8;
       text-align: center;
-      padding: 50px;
+      padding: 30px;
+      margin: 0;
+      box-sizing: border-box;
     }
 
     .title {
-      font-size: 2em;
-      color: #000000d6;
-      margin-bottom: 30px;
+      font-size: 2.5em;
+      color: #4CAF50;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     img {
-      max-width: 300px;
-      margin: 30px auto;
-      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 15px;
+      margin-top: 20px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    img:hover {
+      transform: scale(1.05);
     }
 
     #countdown {
-      font-size: 1.5em;
-      color: #000000;
-      margin-top: 30px;
+      font-size: 1.8em;
+      color: #333;
+      margin-top: 20px;
+      font-weight: bold;
     }
 
     .recado {
-      margin-top: 50px;
+      margin-top: 40px;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     textarea, input {
-      padding: 10px;
-      width: 300px;
-      margin-top: 10px;
-      border-radius: 5px;
+      padding: 12px;
+      width: 80%;
+      max-width: 400px;
+      margin-top: 15px;
+      border-radius: 10px;
       border: 1px solid #ccc;
+      font-size: 1em;
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus, input:focus {
+      border-color: #4CAF50;
+      outline: none;
     }
 
     button {
       margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #4caf50;
+      padding: 12px 25px;
+      background-color: #4CAF50;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 1.2em;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
     }
 
     #listaMensagens {
-      margin-top: 20px;
+      margin-top: 30px;
       text-align: left;
-      max-width: 400px;
+      max-width: 600px;
       margin-left: auto;
       margin-right: auto;
+      padding: 0;
     }
 
     #listaMensagens p {
-      background: #f1f1f1;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    #listaMensagens p:hover {
+      background-color: #e6ffe6;
+    }
+
+    .excluir {
+      background-color: #f44336;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: background-color 0.3s ease;
+    }
+
+    .excluir:hover {
+      background-color: #d32f2f;
+    }
+
+    /* Responsividade */
+    @media (max-width: 600px) {
+      .title {
+        font-size: 2em;
+      }
+
+      textarea, input {
+        width: 90%;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      #listaMensagens p {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
@@ -76,7 +150,8 @@
 
   <div id="countdown"></div>
 
-  <audio controls autoplay loop>
+  <!-- Áudio oculto, mas tocando automaticamente -->
+  <audio autoplay loop style="display: none;">
     <source src="https://ia800706.us.archive.org/11/items/foo-fighters-miracle_202504/Foo%20Fighters%20-%20Miracle.mp3" type="audio/mp3">
     Seu navegador não suporta áudio.
   </audio>
@@ -92,7 +167,7 @@
   <!-- Firebase SDK + Lógica -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbEKyrUXiiRoDlHQlmrNbbqDEupsnG2lQ",
@@ -134,12 +209,25 @@
       const lista = document.getElementById("listaMensagens");
       lista.innerHTML = "";
 
-      querySnapshot.forEach((doc) => {
-        const dados = doc.data();
+      querySnapshot.forEach((docSnapshot) => {
+        const dados = docSnapshot.data();
         const item = document.createElement("p");
         item.textContent = `${dados.nome}: ${dados.mensagem}`;
+
+        // Botão de exclusão
+        const excluirButton = document.createElement("button");
+        excluirButton.textContent = "Excluir";
+        excluirButton.classList.add("excluir");
+        excluirButton.onclick = () => excluirMensagem(docSnapshot.id);
+
+        item.appendChild(excluirButton);
         lista.appendChild(item);
       });
+    }
+
+    async function excluirMensagem(id) {
+      await deleteDoc(doc(db, "recados", id));
+      carregarMensagens();
     }
 
     window.salvarMensagem = salvarMensagem;
