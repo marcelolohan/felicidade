@@ -30,48 +30,47 @@
       margin-top: 30px;
     }
 
-    audio {
-      margin-top: 40px;
-    }
-
     .recado {
-      margin-top: 40px;
+      margin-top: 50px;
     }
 
     textarea, input {
       padding: 10px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: none;
       width: 300px;
-      margin-bottom: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
 
     button {
+      margin-top: 15px;
       padding: 10px 20px;
-      background-color: #ff69b4;
-      border: none;
+      background-color: #4caf50;
       color: white;
-      font-size: 1em;
-      border-radius: 8px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
     }
 
-    button:hover {
-      background-color: #ff1493;
+    #listaMensagens {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    #mensagemSalva {
-      margin-top: 15px;
-      color: #555;
-      font-style: italic;
+    #listaMensagens p {
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="title">Parabéns, Vovós e Titios. Estou Chegando!❤️</div>
+  <div class="title">Parabéns, Vovós e Titios. Estou Chegando! ❤️</div>
 
   <img src="https://archive.org/download/teste_gravidez/teste_gravidez.jpg" alt="Imagem do Bebê" />
 
@@ -85,11 +84,69 @@
   <div class="recado">
     <h3>Deixe um recadinho 💬</h3>
     <input type="text" id="nome" placeholder="Seu nome" /><br>
-    <textarea id="mensagem" placeholder="Escreva sua mensagem..." rows="4"></textarea><br>
+    <textarea id="mensagem" placeholder="Escreva aqui..." rows="4" cols="40"></textarea><br>
     <button onclick="salvarMensagem()">Salvar Mensagem</button>
-    <p id="mensagemSalva"></p>
+    <div id="listaMensagens"></div>
   </div>
 
+  <!-- Firebase SDK + Lógica -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbEKyrUXiiRoDlHQlmrNbbqDEupsnG2lQ",
+      authDomain: "new-project-8c27d.firebaseapp.com",
+      projectId: "new-project-8c27d",
+      storageBucket: "new-project-8c27d.firebasestorage.app",
+      messagingSenderId: "164821779712",
+      appId: "1:164821779712:web:2e8e1a43c0774621071fe5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function salvarMensagem() {
+      const nome = document.getElementById("nome").value.trim();
+      const mensagem = document.getElementById("mensagem").value.trim();
+
+      if (nome && mensagem) {
+        await addDoc(collection(db, "recados"), {
+          nome: nome,
+          mensagem: mensagem,
+          data: new Date()
+        });
+
+        document.getElementById("nome").value = "";
+        document.getElementById("mensagem").value = "";
+
+        carregarMensagens();
+      } else {
+        alert("Por favor, preencha o nome e a mensagem.");
+      }
+    }
+
+    async function carregarMensagens() {
+      const mensagensRef = collection(db, "recados");
+      const q = query(mensagensRef, orderBy("data", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      const lista = document.getElementById("listaMensagens");
+      lista.innerHTML = "";
+
+      querySnapshot.forEach((doc) => {
+        const dados = doc.data();
+        const item = document.createElement("p");
+        item.textContent = `${dados.nome}: ${dados.mensagem}`;
+        lista.appendChild(item);
+      });
+    }
+
+    window.salvarMensagem = salvarMensagem;
+    window.onload = carregarMensagens;
+  </script>
+
+  <!-- Contador -->
   <script>
     const birthDate = new Date("2025-12-25T00:00:00");
 
@@ -97,46 +154,22 @@
       const now = new Date();
       const distance = birthDate - now;
 
+      if (distance < 0) {
+        document.getElementById("countdown").innerHTML = "O bebê chegou! 🎉";
+        return;
+      }
+
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
       const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      const countdown = document.getElementById("countdown");
-
-      if (distance < 0) {
-        countdown.innerHTML = "O bebê chegou! 🎉";
-      } else {
-        countdown.innerHTML = `Faltam ${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos para a chegada!`;
-      }
+      document.getElementById("countdown").innerHTML =
+        `Faltam ${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos para a chegada!`;
     }
 
     setInterval(updateCountdown, 1000);
     updateCountdown();
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const nome = localStorage.getItem("nomeBebe");
-      const mensagem = localStorage.getItem("mensagemBebe");
-      if (nome && mensagem) {
-        document.getElementById("mensagemSalva").textContent = `💖 Recado de ${nome}: ${mensagem}`;
-      }
-    });
-
-    function salvarMensagem() {
-      const nome = document.getElementById("nome").value.trim();
-      const mensagem = document.getElementById("mensagem").value.trim();
-
-      if (nome && mensagem) {
-        localStorage.setItem("nomeBebe", nome);
-        localStorage.setItem("mensagemBebe", mensagem);
-        document.getElementById("mensagemSalva").textContent = `💖 Recado de ${nome}: ${mensagem}`;
-        document.getElementById("nome").value = "";
-        document.getElementById("mensagem").value = "";
-      } else {
-        alert("Por favor, preencha seu nome e mensagem.");
-      }
-    }
   </script>
-
 </body>
 </html>
