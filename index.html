@@ -57,10 +57,14 @@
     function iniciarAudio() {
       // Inicia o áudio quando o botão é clicado
       const audio = document.getElementById("audio");
-      audio.play();
 
-      // Redireciona para a página da contagem regressiva
-      window.location.href = 'contador.html';
+      // Garantir que o áudio seja reproduzido após o clique (no mobile)
+      audio.play().then(() => {
+        // Redireciona para a página da contagem regressiva após o áudio começar a tocar
+        window.location.href = 'contador.html';
+      }).catch((error) => {
+        console.error('Erro ao tentar reproduzir áudio:', error);
+      });
     }
   </script>
 
