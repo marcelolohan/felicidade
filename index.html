@@ -49,30 +49,33 @@
 
   <!-- Áudio oculto -->
   <audio id="audio" style="display: none;" loop>
-    <source src="https://voca.ro/1leymgatItOI" type="audio/mpeg">
+    <source src="https://archive.org/download/foo-fighters-miracle_202504/Foo%20Fighters%20-%20Miracle.mp3" type="audio/mpeg">
     Seu navegador não suporta o elemento de áudio.
   </audio>
 
   <script>
-    // Função que inicia o áudio e redireciona
-    function iniciarAudio() {
+    document.getElementById("playButton").addEventListener("click", function () {
       const audio = document.getElementById("audio");
 
-      // Garantir que o áudio seja reproduzido após o clique (no mobile)
-      audio.play().then(() => {
-        // Redireciona para a página da contagem regressiva após o áudio começar a tocar
-        window.location.href = 'contador.html';
-      }).catch((error) => {
-        console.error('Erro ao tentar reproduzir áudio:', error);
-      });
-    }
+      // Tenta reproduzir o áudio
+      const playPromise = audio.play();
 
-    // Detecta o clique no botão para iniciar o áudio e redirecionar
-    document.getElementById("playButton").addEventListener("click", function() {
-      // Reproduzir áudio e fazer o redirecionamento
-      iniciarAudio();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Depois que o áudio começa, redireciona
+            window.location.href = "contador.html";
+          })
+          .catch((error) => {
+            console.warn("Áudio bloqueado pelo navegador, redirecionando mesmo assim.");
+            window.location.href = "contador.html";
+          });
+      } else {
+        // Se não for possível tocar o áudio, redireciona mesmo assim
+        window.location.href = "contador.html";
+      }
     });
   </script>
 
 </body>
-</html>
+</html
