@@ -122,6 +122,44 @@
       background-color: #d32f2f;
     }
 
+    /* Estilo para os botões de palpite */
+    .palpite-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .palpite-container label {
+      margin: 0 15px;
+      font-size: 1.2em;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .palpite-container input[type="radio"] {
+      display: none;
+    }
+
+    .palpite-container label::before {
+      content: "";
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #4CAF50;
+      border-radius: 50%;
+      margin-right: 10px;
+      vertical-align: middle;
+      transition: all 0.3s ease;
+    }
+
+    .palpite-container input[type="radio"]:checked + label::before {
+      background-color: #4CAF50;
+    }
+
+    .palpite-container label:hover::before {
+      background-color: #45a049;
+    }
+
     /* Responsividade */
     @media (max-width: 600px) {
       .title {
@@ -163,6 +201,16 @@
     <h3>Deixe um recadinho 💬</h3>
     <input type="text" id="nome" placeholder="Seu nome" /><br>
     <textarea id="mensagem" placeholder="Escreva aqui..." rows="4" cols="40"></textarea><br>
+    
+    <!-- Botões de palpite -->
+    <div class="palpite-container">
+      <input type="radio" id="menino" name="palpite" value="Menino">
+      <label for="menino">Menino</label>
+
+      <input type="radio" id="menina" name="palpite" value="Menina">
+      <label for="menina">Menina</label>
+    </div>
+
     <button onclick="salvarMensagem()">Salvar Mensagem</button>
     <div id="listaMensagens"></div>
   </div>
@@ -187,20 +235,23 @@
     async function salvarMensagem() {
       const nome = document.getElementById("nome").value.trim();
       const mensagem = document.getElementById("mensagem").value.trim();
+      const palpite = document.querySelector('input[name="palpite"]:checked')?.value;
 
-      if (nome && mensagem) {
+      if (nome && mensagem && palpite) {
         await addDoc(collection(db, "recados"), {
           nome: nome,
           mensagem: mensagem,
+          palpite: palpite,
           data: new Date()
         });
 
         document.getElementById("nome").value = "";
         document.getElementById("mensagem").value = "";
+        document.querySelector('input[name="palpite"]:checked').checked = false;
 
         carregarMensagens();
       } else {
-        alert("Por favor, preencha o nome e a mensagem.");
+        alert("Por favor, preencha todos os campos.");
       }
     }
 
@@ -215,7 +266,7 @@
       querySnapshot.forEach((docSnapshot) => {
         const dados = docSnapshot.data();
         const item = document.createElement("p");
-        item.textContent = `${dados.nome}: ${dados.mensagem}`;
+        item.textContent = `${dados.nome}: ${dados.mensagem} (Palpite: ${dados.palpite})`;
 
         // Botão de exclusão
         const excluirButton = document.createElement("button");
@@ -229,44 +280,4 @@
     }
 
     async function excluirMensagem(id) {
-      await deleteDoc(doc(db, "recados", id));
-      carregarMensagens();
-    }
-
-    window.salvarMensagem = salvarMensagem;
-    window.onload = carregarMensagens;
-
-    // Função para tocar a música
-    function playAudio() {
-      const audio = document.getElementById("audio");
-      audio.play();
-    }
-  </script>
-
-  <!-- Contador -->
-  <script>
-    const birthDate = new Date("2025-12-25T00:00:00");
-
-    function updateCountdown() {
-      const now = new Date();
-      const distance = birthDate - now;
-
-      if (distance < 0) {
-        document.getElementById("countdown").innerHTML = "O bebê chegou! 🎉";
-        return;
-      }
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      document.getElementById("countdown").innerHTML =
-        `Faltam ${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos para a chegada!`;
-    }
-
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
-  </script>
-</body>
-</html>
+      await deleteDoc
