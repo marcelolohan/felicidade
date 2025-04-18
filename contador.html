@@ -1,283 +1,83 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contagem Regressiva do Bebê</title>
-  <style>
-    /* Fonte padrão */
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f8f8f8;
-      text-align: center;
-      padding: 30px;
-      margin: 0;
-      box-sizing: border-box;
-    }
+<!-- ADICIONE ESSE SCRIPT EXTRA NO FINAL DO BODY -->
+<script>
+  // Coloque essa função no escopo global para que o botão funcione
+  function playAudio() {
+    const audio = document.getElementById("audio");
+    audio.play().catch((error) => {
+      alert("A reprodução da música foi bloqueada pelo navegador.");
+    });
+  }
 
-    .title {
-      font-size: 2.5em;
-      color: #4CAF50;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    }
+  // Espera o Firebase carregar para chamar a função de mensagens
+  window.addEventListener("DOMContentLoaded", () => {
+    import("https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js").then(async firebaseModule => {
+      const { initializeApp } = firebaseModule;
+      const { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } =
+        await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js");
 
-    img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 15px;
-      margin-top: 20px;
-      transition: transform 0.3s ease-in-out;
-    }
+      const firebaseConfig = {
+        apiKey: "AIzaSyBbEKyrUXiiRoDlHQlmrNbbqDEupsnG2lQ",
+        authDomain: "new-project-8c27d.firebaseapp.com",
+        projectId: "new-project-8c27d",
+        storageBucket: "new-project-8c27d.appspot.com",
+        messagingSenderId: "164821779712",
+        appId: "1:164821779712:web:2e8e1a43c0774621071fe5"
+      };
 
-    img:hover {
-      transform: scale(1.05);
-    }
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-    #countdown {
-      font-size: 1.8em;
-      color: #333;
-      margin-top: 20px;
-      font-weight: bold;
-    }
+      window.salvarMensagem = async function () {
+        const nome = document.getElementById("nome").value.trim();
+        const mensagem = document.getElementById("mensagem").value.trim();
+        const palpite = document.querySelector('input[name="palpite"]:checked')?.value;
 
-    .recado {
-      margin-top: 40px;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+        if (nome && mensagem && palpite) {
+          await addDoc(collection(db, "recados"), {
+            nome,
+            mensagem,
+            palpite,
+            data: new Date()
+          });
 
-    textarea, input {
-      padding: 12px;
-      width: 80%;
-      max-width: 400px;
-      margin-top: 15px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 1em;
-      transition: border-color 0.3s ease;
-    }
+          document.getElementById("nome").value = "";
+          document.getElementById("mensagem").value = "";
+          document.querySelectorAll('input[name="palpite"]').forEach(el => el.checked = false);
 
-    textarea:focus, input:focus {
-      border-color: #4CAF50;
-      outline: none;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 12px 25px;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1.2em;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    #listaMensagens {
-      margin-top: 30px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      padding: 0;
-    }
-
-    #listaMensagens p {
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      font-size: 1.1em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease;
-    }
-
-    #listaMensagens p:hover {
-      background-color: #e6ffe6;
-    }
-
-    .excluir {
-      background-color: #f44336;
-      color: white;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background-color 0.3s ease;
-    }
-
-    .excluir:hover {
-      background-color: #d32f2f;
-    }
-
-    /* Estilo para os botões de palpite */
-    .palpite-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .palpite-container label {
-      margin: 0 15px;
-      font-size: 1.2em;
-      color: #333;
-      cursor: pointer;
-    }
-
-    .palpite-container input[type="radio"] {
-      display: none;
-    }
-
-    .palpite-container label::before {
-      content: "";
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #4CAF50;
-      border-radius: 50%;
-      margin-right: 10px;
-      vertical-align: middle;
-      transition: all 0.3s ease;
-    }
-
-    .palpite-container input[type="radio"]:checked + label::before {
-      background-color: #4CAF50;
-    }
-
-    .palpite-container label:hover::before {
-      background-color: #45a049;
-    }
-
-    /* Responsividade */
-    @media (max-width: 600px) {
-      .title {
-        font-size: 2em;
+          carregarMensagens();
+        } else {
+          alert("Por favor, preencha todos os campos.");
+        }
       }
 
-      textarea, input {
-        width: 90%;
-      }
+      async function carregarMensagens() {
+        const mensagensRef = collection(db, "recados");
+        const q = query(mensagensRef, orderBy("data", "desc"));
+        const querySnapshot = await getDocs(q);
 
-      button {
-        width: 100%;
-      }
+        const lista = document.getElementById("listaMensagens");
+        lista.innerHTML = "";
 
-      #listaMensagens p {
-        font-size: 1em;
-      }
-    }
-  </style>
-</head>
-<body>
+        querySnapshot.forEach((docSnapshot) => {
+          const dados = docSnapshot.data();
+          const item = document.createElement("p");
+          item.textContent = `${dados.nome}: ${dados.mensagem} (Palpite: ${dados.palpite})`;
 
-  <div class="title">Parabéns, Vovós e Titios. Estou Chegando! ❤️</div>
+          const excluirButton = document.createElement("button");
+          excluirButton.textContent = "Excluir";
+          excluirButton.classList.add("excluir");
+          excluirButton.onclick = async () => {
+            await deleteDoc(doc(db, "recados", docSnapshot.id));
+            carregarMensagens();
+          };
 
-  <img src="https://archive.org/download/teste_gravidez/teste_gravidez.jpg" alt="Imagem do Bebê" />
-
-  <div id="countdown"></div>
-
-  <!-- Áudio que será controlado pelo botão -->
-  <audio id="audio" loop>
-    <source src="https://ia800706.us.archive.org/11/items/foo-fighters-miracle_202504/Foo%20Fighters%20-%20Miracle.mp3" type="audio/mp3">
-    Seu navegador não suporta áudio.
-  </audio>
-
-  <!-- Botão para iniciar o áudio -->
-  <button onclick="playAudio()">Play Música</button>
-
-  <div class="recado">
-    <h3>Deixe um recadinho 💬</h3>
-    <input type="text" id="nome" placeholder="Seu nome" /><br>
-    <textarea id="mensagem" placeholder="Escreva aqui..." rows="4" cols="40"></textarea><br>
-    
-    <!-- Botões de palpite -->
-    <div class="palpite-container">
-      <input type="radio" id="menino" name="palpite" value="Menino">
-      <label for="menino">Menino</label>
-
-      <input type="radio" id="menina" name="palpite" value="Menina">
-      <label for="menina">Menina</label>
-    </div>
-
-    <button onclick="salvarMensagem()">Salvar Mensagem</button>
-    <div id="listaMensagens"></div>
-  </div>
-
-  <!-- Firebase SDK + Lógica -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbEKyrUXiiRoDlHQlmrNbbqDEupsnG2lQ",
-      authDomain: "new-project-8c27d.firebaseapp.com",
-      projectId: "new-project-8c27d",
-      storageBucket: "new-project-8c27d.firebasestorage.app",
-      messagingSenderId: "164821779712",
-      appId: "1:164821779712:web:2e8e1a43c0774621071fe5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    async function salvarMensagem() {
-      const nome = document.getElementById("nome").value.trim();
-      const mensagem = document.getElementById("mensagem").value.trim();
-      const palpite = document.querySelector('input[name="palpite"]:checked')?.value;
-
-      if (nome && mensagem && palpite) {
-        await addDoc(collection(db, "recados"), {
-          nome: nome,
-          mensagem: mensagem,
-          palpite: palpite,
-          data: new Date()
+          item.appendChild(excluirButton);
+          lista.appendChild(item);
         });
-
-        document.getElementById("nome").value = "";
-        document.getElementById("mensagem").value = "";
-        document.querySelector('input[name="palpite"]:checked').checked = false;
-
-        carregarMensagens();
-      } else {
-        alert("Por favor, preencha todos os campos.");
       }
-    }
 
-    async function carregarMensagens() {
-      const mensagensRef = collection(db, "recados");
-      const q = query(mensagensRef, orderBy("data", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      const lista = document.getElementById("listaMensagens");
-      lista.innerHTML = "";
-
-      querySnapshot.forEach((docSnapshot) => {
-        const dados = docSnapshot.data();
-        const item = document.createElement("p");
-        item.textContent = `${dados.nome}: ${dados.mensagem} (Palpite: ${dados.palpite})`;
-
-        // Botão de exclusão
-        const excluirButton = document.createElement("button");
-        excluirButton.textContent = "Excluir";
-        excluirButton.classList.add("excluir");
-        excluirButton.onclick = () => excluirMensagem(docSnapshot.id);
-
-        item.appendChild(excluirButton);
-        lista.appendChild(item);
-      });
-    }
-
-    async function excluirMensagem(id) {
-      await deleteDoc
+      // Carrega as mensagens ao abrir
+      carregarMensagens();
+    });
+  });
+</script>
