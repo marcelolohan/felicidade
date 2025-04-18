@@ -5,21 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contagem Regressiva do Bebê</title>
   <style>
-    /* Fonte padrão */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f8f8f8;
       text-align: center;
       padding: 30px;
-      margin: 0;
-      box-sizing: border-box;
+      background-color: #f8f8f8;
     }
 
     .title {
       font-size: 2.5em;
       color: #4CAF50;
       margin-bottom: 20px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     img {
@@ -27,11 +23,6 @@
       height: auto;
       border-radius: 15px;
       margin-top: 20px;
-      transition: transform 0.3s ease-in-out;
-    }
-
-    img:hover {
-      transform: scale(1.05);
     }
 
     #countdown {
@@ -57,12 +48,6 @@
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 1em;
-      transition: border-color 0.3s ease;
-    }
-
-    textarea:focus, input:focus {
-      border-color: #4CAF50;
-      outline: none;
     }
 
     button {
@@ -74,66 +59,20 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 1.2em;
-      transition: background-color 0.3s ease;
     }
 
     button:hover {
       background-color: #45a049;
     }
 
-    #listaMensagens {
-      margin-top: 30px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      padding: 0;
-    }
-
-    #listaMensagens p {
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      font-size: 1.1em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease;
-    }
-
-    #listaMensagens p:hover {
-      background-color: #e6ffe6;
-    }
-
-    .excluir {
-      background-color: #f44336;
-      color: white;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: background-color 0.3s ease;
-    }
-
-    .excluir:hover {
-      background-color: #d32f2f;
-    }
-
-    /* Estilo para os botões de palpite */
     .palpite-container {
-      display: flex;
-      justify-content: center;
       margin-top: 20px;
     }
 
     .palpite-container label {
-      margin: 0 15px;
       font-size: 1.2em;
-      color: #333;
       cursor: pointer;
+      margin: 0 15px;
     }
 
     .palpite-container input[type="radio"] {
@@ -155,29 +94,6 @@
     .palpite-container input[type="radio"]:checked + label::before {
       background-color: #4CAF50;
     }
-
-    .palpite-container label:hover::before {
-      background-color: #45a049;
-    }
-
-    /* Responsividade */
-    @media (max-width: 600px) {
-      .title {
-        font-size: 2em;
-      }
-
-      textarea, input {
-        width: 90%;
-      }
-
-      button {
-        width: 100%;
-      }
-
-      #listaMensagens p {
-        font-size: 1em;
-      }
-    }
   </style>
 </head>
 <body>
@@ -188,20 +104,18 @@
 
   <div id="countdown"></div>
 
-  <!-- Áudio que será controlado pelo botão -->
   <audio id="audio" loop>
     <source src="https://ia800706.us.archive.org/11/items/foo-fighters-miracle_202504/Foo%20Fighters%20-%20Miracle.mp3" type="audio/mp3">
     Seu navegador não suporta áudio.
   </audio>
 
-  <!-- Botão para iniciar o áudio -->
   <button onclick="playAudio()">Play Música</button>
 
   <div class="recado">
     <h3>Deixe um recadinho 💬</h3>
     <input type="text" id="nome" placeholder="Seu nome" /><br>
     <textarea id="mensagem" placeholder="Escreva aqui..." rows="4" cols="40"></textarea><br>
-    
+
     <!-- Botões de palpite -->
     <div class="palpite-container">
       <input type="radio" id="menino" name="palpite" value="Menino">
@@ -280,4 +194,47 @@
     }
 
     async function excluirMensagem(id) {
-      await deleteDoc
+      await deleteDoc(doc(db, "recados", id));
+      carregarMensagens();
+    }
+
+    function playAudio() {
+      const audio = document.getElementById("audio");
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    window.onload = carregarMensagens;
+  </script>
+
+  <!-- Contador -->
+  <script>
+    const birthDate = new Date("2025-12-25T00:00:00");
+
+    function updateCountdown() {
+      const now = new Date();
+      const distance = birthDate - now;
+
+      if (distance < 0) {
+        document.getElementById("countdown").innerHTML = "O bebê chegou! 🎉";
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById("countdown").innerHTML =
+        `Faltam ${days} dias, ${hours} horas, ${minutes} minutos e ${seconds} segundos para a chegada!`;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+  </script>
+
+</body>
+</html>
