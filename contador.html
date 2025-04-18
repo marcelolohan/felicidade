@@ -197,6 +197,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Função para salvar mensagem
     async function salvarMensagem() {
       const nome = document.getElementById("nome").value.trim();
       const mensagem = document.getElementById("mensagem").value.trim();
@@ -207,26 +208,27 @@
           nome,
           mensagem,
           palpite,
-          data: new Date()
+          data: new Date() // Salvando a data atual
         });
 
         document.getElementById("nome").value = "";
         document.getElementById("mensagem").value = "";
         document.querySelector('input[name="palpite"]:checked').checked = false;
 
-        carregarMensagens();
+        carregarMensagens(); // Recarregar as mensagens
       } else {
         alert("Por favor, preencha todos os campos.");
       }
     }
 
+    // Função para carregar mensagens
     async function carregarMensagens() {
       const mensagensRef = collection(db, "recados");
       const q = query(mensagensRef, orderBy("data", "desc"));
       const querySnapshot = await getDocs(q);
 
       const lista = document.getElementById("listaMensagens");
-      lista.innerHTML = "";
+      lista.innerHTML = ""; // Limpar lista antes de atualizar
 
       querySnapshot.forEach((docSnapshot) => {
         const dados = docSnapshot.data();
@@ -243,11 +245,13 @@
       });
     }
 
+    // Função para excluir mensagem
     async function excluirMensagem(id) {
-      await deleteDoc(doc(db, "recados", id));
-      carregarMensagens();
+      await deleteDoc(doc(db, "recados", id)); // Excluir do Firestore
+      carregarMensagens(); // Recarregar as mensagens após exclusão
     }
 
+    // Carregar mensagens ao iniciar a página
     carregarMensagens();
   </script>
 
