@@ -11,12 +11,14 @@
       text-align: center;
       padding: 30px;
       margin: 0;
+      box-sizing: border-box;
     }
 
     .title {
       font-size: 2.5em;
       color: #4CAF50;
       margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     img {
@@ -24,6 +26,11 @@
       height: auto;
       border-radius: 15px;
       margin-top: 20px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    img:hover {
+      transform: scale(1.05);
     }
 
     #countdown {
@@ -49,6 +56,12 @@
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 1em;
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus, input:focus {
+      border-color: #4CAF50;
+      outline: none;
     }
 
     button {
@@ -60,6 +73,11 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 1.2em;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
     }
 
     #listaMensagens {
@@ -68,6 +86,7 @@
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
+      padding: 0;
     }
 
     #listaMensagens p {
@@ -75,28 +94,67 @@
       padding: 15px;
       border-radius: 12px;
       margin-bottom: 12px;
-    }
-
-    .palpite-container {
+      font-size: 1.1em;
       display: flex;
-      justify-content: center;
-      margin-top: 20px;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
     }
 
-    .palpite-container label {
-      margin: 0 15px;
-      font-size: 1.2em;
-      cursor: pointer;
+    #listaMensagens p:hover {
+      background-color: #e6ffe6;
     }
 
     .excluir {
       background-color: #f44336;
       color: white;
-      margin-left: 10px;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 15px;
       border: none;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 0.9em;
+      transition: background-color 0.3s ease;
+    }
+
+    .excluir:hover {
+      background-color: #d32f2f;
+    }
+
+    /* Palpite estilizado */
+    .palpite-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .palpite-container label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.1em;
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .title {
+        font-size: 2em;
+      }
+
+      textarea, input {
+        width: 90%;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      #listaMensagens p {
+        font-size: 1em;
+      }
     }
   </style>
 </head>
@@ -108,6 +166,7 @@
 
   <div id="countdown"></div>
 
+  <!-- Áudio -->
   <audio id="audio" loop>
     <source src="https://ia800706.us.archive.org/11/items/foo-fighters-miracle_202504/Foo%20Fighters%20-%20Miracle.mp3" type="audio/mp3">
     Seu navegador não suporta áudio.
@@ -121,45 +180,49 @@
     <textarea id="mensagem" placeholder="Escreva aqui..." rows="4" cols="40"></textarea><br>
 
     <div class="palpite-container">
-      <input type="radio" id="menino" name="palpite" value="Menino">
-      <label for="menino">Menino</label>
-
-      <input type="radio" id="menina" name="palpite" value="Menina">
-      <label for="menina">Menina</label>
+      <label>
+        <input type="radio" name="palpite" value="Menino">
+        Menino
+      </label>
+      <label>
+        <input type="radio" name="palpite" value="Menina">
+        Menina
+      </label>
     </div>
 
     <button onclick="salvarMensagem()">Salvar Mensagem</button>
     <div id="listaMensagens"></div>
   </div>
 
-  <!-- Contagem Regressiva -->
+  <!-- Scripts -->
   <script>
-    const dataNascimento = new Date("2025-05-16T00:00:00");
-    const countdown = document.getElementById("countdown");
+    // Contagem regressiva
+    const nascimento = new Date("2025-05-15T00:00:00").getTime();
+    const countdownEl = document.getElementById("countdown");
 
     setInterval(() => {
       const agora = new Date().getTime();
-      const distancia = dataNascimento - agora;
+      const distancia = nascimento - agora;
 
       if (distancia > 0) {
         const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
         const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
         const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
-
-        countdown.innerHTML = `Faltam ${dias} dias, ${horas}h ${minutos}m ${segundos}s para minha chegada! 👶💖`;
+        countdownEl.textContent = `Faltam ${dias}d ${horas}h ${minutos}m ${segundos}s para eu chegar! 👶`;
       } else {
-        countdown.innerHTML = "Cheguei! 👶💖";
+        countdownEl.textContent = "Já cheguei ao mundo! 🎉";
       }
     }, 1000);
 
+    // Música
     function playAudio() {
       const audio = document.getElementById("audio");
       audio.play();
     }
   </script>
 
-  <!-- Firebase + Firestore -->
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
@@ -176,7 +239,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    window.salvarMensagem = async function () {
+    async function salvarMensagem() {
       const nome = document.getElementById("nome").value.trim();
       const mensagem = document.getElementById("mensagem").value.trim();
       const palpite = document.querySelector('input[name="palpite"]:checked')?.value;
@@ -191,11 +254,10 @@
 
         document.getElementById("nome").value = "";
         document.getElementById("mensagem").value = "";
-        document.querySelectorAll('input[name="palpite"]').forEach(el => el.checked = false);
-
+        document.querySelector('input[name="palpite"]:checked').checked = false;
         carregarMensagens();
       } else {
-        alert("Por favor, preencha todos os campos.");
+        alert("Preencha todos os campos e selecione um palpite!");
       }
     }
 
@@ -207,22 +269,24 @@
       const lista = document.getElementById("listaMensagens");
       lista.innerHTML = "";
 
-      querySnapshot.forEach((docSnap) => {
-        const dados = docSnap.data();
-        const p = document.createElement("p");
-        p.textContent = `${dados.nome}: ${dados.mensagem} (Palpite: ${dados.palpite})`;
+      querySnapshot.forEach((docSnapshot) => {
+        const dados = docSnapshot.data();
+        const item = document.createElement("p");
+        item.textContent = `${dados.nome}: ${dados.mensagem} (Palpite: ${dados.palpite})`;
 
-        const excluirBtn = document.createElement("button");
-        excluirBtn.textContent = "Excluir";
-        excluirBtn.classList.add("excluir");
-        excluirBtn.onclick = async () => {
-          await deleteDoc(doc(db, "recados", docSnap.id));
-          carregarMensagens();
-        };
+        const excluirButton = document.createElement("button");
+        excluirButton.textContent = "Excluir";
+        excluirButton.classList.add("excluir");
+        excluirButton.onclick = () => excluirMensagem(docSnapshot.id);
 
-        p.appendChild(excluirBtn);
-        lista.appendChild(p);
+        item.appendChild(excluirButton);
+        lista.appendChild(item);
       });
+    }
+
+    async function excluirMensagem(id) {
+      await deleteDoc(doc(db, "recados", id));
+      carregarMensagens();
     }
 
     carregarMensagens();
