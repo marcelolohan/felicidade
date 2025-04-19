@@ -48,7 +48,7 @@
 
     .whatsapp-button {
       display: inline-block;
-      margin-top: 15px;
+      margin: 10px;
       padding: 12px 20px;
       background-color: #25D366;
       color: white;
@@ -103,8 +103,12 @@
 
   <textarea id="mensagem" placeholder="Escreva sua mensagem aqui..."></textarea><br>
 
-  <a class="whatsapp-button" target="_blank" onclick="enviarMensagemWhatsApp()">
-    Enviar pelo WhatsApp
+  <a class="whatsapp-button" onclick="enviarMensagemWhatsApp('PAI')" target="_blank">
+    Enviar para o WhatsApp do Papai 👨‍🍼
+  </a>
+
+  <a class="whatsapp-button" onclick="enviarMensagemWhatsApp('MAE')" target="_blank">
+    Enviar para o WhatsApp da Mamãe 🤰
   </a>
 
   <script>
@@ -130,16 +134,21 @@
 
     setInterval(atualizarContador, 1000);
 
-    function enviarMensagemWhatsApp() {
+    function enviarMensagemWhatsApp(destino) {
       const mensagem = document.getElementById("mensagem").value.trim();
-      const numero = "5563999857474"; // Substitua com o número dos papais (formato internacional)
-
       if (mensagem.length === 0) {
         alert("Por favor, escreva uma mensagem antes de enviar!");
         return;
       }
 
+      // Substitua pelos números reais no formato internacional
+      const numeros = {
+        "PAI": "5563999999999",
+        "MAE": "5563988888888"
+      };
+
       const texto = encodeURIComponent("Mensagem para os Novos Papais: " + mensagem);
+      const numero = numeros[destino];
       const url = `https://wa.me/${numero}?text=${texto}`;
       window.open(url, "_blank");
     }
